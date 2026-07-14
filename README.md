@@ -1,86 +1,178 @@
-# 40K Expected Damage API
+# Auspex Scan
 
-A small REST API proof of concept for calculating the average raw damage caused by
-one Warhammer 40,000 11th-edition weapon profile against one defender profile.
+Auspex Scan is a Warhammer 40,000 11th-edition matchup calculator proof of
+concept. It combines a FastAPI REST API, a local SQLite profile database, and a
+lightweight web interface for comparing stored weapons against stored units.
 
-The current version supports the normal hit, wound, armour-save, and fixed-damage
-sequence. It intentionally does not support rerolls, keywords, modifiers,
-invulnerable saves, Feel No Pain, variable characteristics, mortal wounds, or
-mixed-profile units. Expected model destruction does account for fixed-damage
-overkill being lost between otherwise identical models.
+## Current capabilities
 
-In 11th edition, save rolls are grouped by models sharing the same Wounds, Save,
-and Invulnerable Save characteristics, with separate groups for Characters. This
-POC uses one homogeneous defender profile, so that allocation sequence does not
-change the raw expected-damage result yet.
+- Store homogeneous unit profiles in SQLite.
+- Attach fixed ranged and melee weapon profiles to units.
+- Create, read, update, and soft delete units and weapons through the API.
+- Prevent duplicate unit and weapon identities.
+- Calculate one or more identical weapons into a selected defending unit.
+- Apply normal hit, wound, armour-save, invulnerable-save, and fixed-damage
+  rules.
+- Report expected hits, wounds, unsaved attacks, damage, and models destroyed.
+- Account for fixed-damage overkill being lost between identical models.
+- Explore matchups through a responsive single-page web interface.
 
-Unit profiles can be stored in the local SQLite database through the `/v1/units`
-CRUD endpoints. Deleting a unit is a soft delete that marks it inactive.
-Unit identity is the case-insensitive combination of faction, name, and edition;
-the API rejects duplicate active or inactive records with HTTP `409 Conflict`.
-Fixed weapon profiles can be attached to units through nested CRUD endpoints at
-`/v1/units/{unit_id}/weapons`. Weapon names, alternate profile names, and weapon
-types form a case-insensitive identity within each unit.
-
-Stored profiles can be calculated through
-`POST /v1/calculations/expected-damage`. The request selects a weapon profile,
-the number of identical weapons, a defending unit, and its model count. The
-calculator automatically uses an invulnerable save when it is better than the
-armour save after AP.
-
-## Documentation conventions
-
-Python code follows PEP 8 for style, PEP 20 for design, and PEP 257 for
-docstrings. Comments explain non-obvious reasoning rather than restating code.
-Public API behavior is documented through endpoint metadata, docstrings, and
-Pydantic field descriptions rendered automatically in `/docs` and `/redoc`.
+The current POC does not support rerolls, keywords, hit or wound modifiers,
+Feel No Pain, variable attacks or damage, mortal wounds, mixed defensive
+profiles, attached leaders, or weapon abilities.
 
 ## Run locally
 
+From PowerShell in the project directory:
+
 ```powershell
 python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -r requirements-dev.txt
-uvicorn app.main:app --reload
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements-dev.txt
+python -m uvicorn app.main:app --reload
 ```
 
-Open `http://127.0.0.1:8000/docs` for the interactive API documentation.
-Open `http://127.0.0.1:8000/` for the lightweight matchup calculator.
+Keep the terminal open while using the application.
 
-## Example request
+## Local pages
+
+- [Matchup calculator](http://127.0.0.1:8000/)
+- [Swagger UI](http://127.0.0.1:8000/docs)
+- [ReDoc](http://127.0.0.1:8000/redoc)
+- [OpenAPI schema](http://127.0.0.1:8000/openapi.json)
+- [Health check](http://127.0.0.1:8000/health)
+
+These links work while the local API is running.
+
+## Typical workflow
+
+1. Open Swagger UI at `http://127.0.0.1:8000/docs`.
+2. Create an attacking unit with `POST /v1/units`.
+3. Create a defending unit with `POST /v1/units`.
+4. Attach a weapon with `POST /v1/units/{unit_id}/weapons`.
+5. Open the matchup calculator at `http://127.0.0.1:8000/`.
+6. Select the weapon, target, weapon count, and target model count.
+
+The page recalculates automatically when a selection changes.
+
+## API overview
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `GET` | `/health` | Confirm the API is responding |
+| `POST` | `/v1/units` | Create a unit |
+| `GET` | `/v1/units` | List units |
+| `GET` | `/v1/units/{unit_id}` | Get one unit |
+| `PATCH` | `/v1/units/{unit_id}` | Update a unit |
+| `DELETE` | `/v1/units/{unit_id}` | Deactivate a unit |
+| `POST` | `/v1/units/{unit_id}/weapons` | Create a weapon profile |
+| `GET` | `/v1/units/{unit_id}/weapons` | List a unit's weapons |
+| `GET` | `/v1/units/{unit_id}/weapons/{weapon_id}` | Get one weapon |
+| `PATCH` | `/v1/units/{unit_id}/weapons/{weapon_id}` | Update a weapon |
+| `DELETE` | `/v1/units/{unit_id}/weapons/{weapon_id}` | Deactivate a weapon |
+| `POST` | `/v1/calculations/expected-damage` | Calculate stored profiles |
+| `POST` | `/v1/expected-damage` | Calculate inline profiles |
+
+Soft-deleted records are excluded from list endpoints by default. Add
+`?include_inactive=true` to include them.
+
+## Stored calculation example
+
+After creating units and a weapon profile, submit their returned identifiers:
+
+```json
+{
+  "weapon_profile_id": 1,
+  "defender_unit_id": 2,
+  "weapon_count": 5,
+  "defender_model_count": 10
+}
+```
+
+Send the request to:
+
+```text
+POST /v1/calculations/expected-damage
+```
+
+For five A2, BS 3+, S4, AP -1, D1 weapons into ten T4, Sv 3+, W1 models,
+an abridged response would be:
+
+```json
+{
+  "attacking_unit": {
+    "id": 1,
+    "name": "Intercessor Squad"
+  },
+  "weapon": {
+    "id": 1,
+    "name": "Bolt rifle",
+    "profile_name": "default"
+  },
+  "defender": {
+    "id": 2,
+    "name": "Example Target"
+  },
+  "weapon_count": 5,
+  "defender_model_count": 10,
+  "result": {
+    "expected_hits": 6.6667,
+    "expected_wounds": 3.3333,
+    "expected_unsaved_attacks": 1.6667,
+    "expected_damage": 1.6667,
+    "expected_models_destroyed": 1.6667
+  }
+}
+```
+
+Swagger UI shows the complete response schema, probability stages, validation
+rules, and editable request examples.
+
+## Local database
+
+Application data is stored in:
+
+```text
+auspex_scan.db
+```
+
+The SQLite file is created automatically in the directory where the API starts
+and is excluded from Git. Unit identity is the case-insensitive combination of
+faction, name, and edition. Weapon identity is the case-insensitive combination
+of owning unit, weapon name, profile name, and weapon type.
+
+Database writes should be performed through the API so Pydantic and database
+constraints remain enforced.
+
+## Tests
+
+Run the complete test suite with:
 
 ```powershell
-$body = @{
-  weapon = @{
-    name = "Example gun"
-    attacks = 6
-    skill = 3
-    strength = 5
-    armour_penetration = -1
-    damage = 2
-  }
-  defender = @{
-    name = "Example target"
-    toughness = 4
-    save = 3
-    wounds = 2
-    model_count = 5
-  }
-} | ConvertTo-Json
-
-Invoke-RestMethod `
-  -Method Post `
-  -Uri http://127.0.0.1:8000/v1/expected-damage `
-  -ContentType application/json `
-  -Body $body
+python -m pytest -q
 ```
 
-For this example, the expected damage is `2.6667` and the expected models
-destroyed is `1.3332`: six attacks hit on 3+, wound on 3+, defeat a 4+ modified
-save, and inflict two damage each against two-wound models.
+Tests use a separate in-memory SQLite database and do not modify local profile
+data.
 
-## Test
+## Project structure
 
-```powershell
-pytest
+```text
+app/
+├── calculator.py             # Core expected-damage calculations
+├── database.py               # SQLite engine and sessions
+├── db_models.py              # SQLAlchemy database models
+├── main.py                   # FastAPI application
+├── routers/                  # Unit, weapon, and calculation endpoints
+├── rules/                    # Centralized game constraints
+├── static/                   # Single-page web interface
+├── unit_schemas.py           # Unit request and response validation
+└── weapon_schemas.py         # Weapon request and response validation
 ```
+
+## Development conventions
+
+Python code follows PEP 8 for style, PEP 20 for design, and PEP 257 for
+docstrings. Comments explain non-obvious reasoning rather than restating code.
+FastAPI endpoint metadata, docstrings, and Pydantic field descriptions generate
+the interactive API documentation.
