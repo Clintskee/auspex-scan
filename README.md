@@ -14,6 +14,27 @@ and Invulnerable Save characteristics, with separate groups for Characters. This
 POC uses one homogeneous defender profile, so that allocation sequence does not
 change the raw expected-damage result yet.
 
+Unit profiles can be stored in the local SQLite database through the `/v1/units`
+CRUD endpoints. Deleting a unit is a soft delete that marks it inactive.
+Unit identity is the case-insensitive combination of faction, name, and edition;
+the API rejects duplicate active or inactive records with HTTP `409 Conflict`.
+Fixed weapon profiles can be attached to units through nested CRUD endpoints at
+`/v1/units/{unit_id}/weapons`. Weapon names, alternate profile names, and weapon
+types form a case-insensitive identity within each unit.
+
+Stored profiles can be calculated through
+`POST /v1/calculations/expected-damage`. The request selects a weapon profile,
+the number of identical weapons, a defending unit, and its model count. The
+calculator automatically uses an invulnerable save when it is better than the
+armour save after AP.
+
+## Documentation conventions
+
+Python code follows PEP 8 for style, PEP 20 for design, and PEP 257 for
+docstrings. Comments explain non-obvious reasoning rather than restating code.
+Public API behavior is documented through endpoint metadata, docstrings, and
+Pydantic field descriptions rendered automatically in `/docs` and `/redoc`.
+
 ## Run locally
 
 ```powershell
@@ -24,6 +45,7 @@ uvicorn app.main:app --reload
 ```
 
 Open `http://127.0.0.1:8000/docs` for the interactive API documentation.
+Open `http://127.0.0.1:8000/` for the lightweight matchup calculator.
 
 ## Example request
 
