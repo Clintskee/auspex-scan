@@ -6,4 +6,9 @@ __pycache__/
 htmlcov/
 .env
 *.db
+node_modules/
+.pnpm-store/
+frontend/.svelte-kit/
+frontend/build/
+staticfiles/
 

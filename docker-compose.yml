@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: auspex_scan
+      POSTGRES_USER: auspex
+      POSTGRES_PASSWORD: auspex
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auspex -d auspex_scan"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  web:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://auspex:auspex@db:5432/auspex_scan
+      DJANGO_SECRET_KEY: local-compose-key
+      DJANGO_DEBUG: "false"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+    ports: ["8000:8000"]
+    depends_on:
+      db: { condition: service_healthy }
+volumes:
+  postgres_data:

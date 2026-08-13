@@ -1,8 +1,6 @@
-from fastapi.testclient import TestClient
+from tests.api_client import JsonAPIClient
 
-from app.main import app
-
-client = TestClient(app)
+client = JsonAPIClient()
 
 UNIT_PAYLOAD = {
     "name": "Intercessor Squad",

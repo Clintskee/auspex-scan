@@ -1,9 +1,7 @@
 import pytest
-from fastapi.testclient import TestClient
+from tests.api_client import JsonAPIClient
 
-from app.main import app
-
-client = TestClient(app)
+client = JsonAPIClient()
 
 
 def test_health() -> None:

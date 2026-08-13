@@ -1,8 +1,6 @@
-from fastapi.testclient import TestClient
+from tests.api_client import JsonAPIClient
 
-from app.main import app
-
-client = TestClient(app)
+client = JsonAPIClient()
 
 UNIT_PAYLOAD = {
     "name": "Weapon Test Unit",
@@ -138,4 +136,3 @@ def test_weapon_must_belong_to_requested_unit() -> None:
     )
 
     assert response.status_code == 404
-
