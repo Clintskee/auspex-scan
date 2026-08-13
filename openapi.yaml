@@ -1,0 +1,664 @@
+openapi: 3.0.3
+info:
+  title: Auspex Scan API
+  version: 1.0.0
+  description: Warhammer 40,000 11th-edition matchup calculator.
+paths:
+  /health:
+    get:
+      operationId: health_retrieve
+      tags:
+      - health
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /v1/calculations/expected-damage:
+    post:
+      operationId: v1_calculations_expected_damage_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoredDamage'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StoredDamage'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StoredDamage'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /v1/expected-damage:
+    post:
+      operationId: v1_expected_damage_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InlineDamage'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/InlineDamage'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/InlineDamage'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /v1/units:
+    get:
+      operationId: v1_units_list
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Unit'
+          description: ''
+    post:
+      operationId: v1_units_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Unit'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Unit'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Unit'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+          description: ''
+  /v1/units/{unit_id}:
+    get:
+      operationId: v1_units_retrieve
+      parameters:
+      - in: path
+        name: unit_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+          description: ''
+    patch:
+      operationId: v1_units_partial_update
+      parameters:
+      - in: path
+        name: unit_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUnit'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUnit'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUnit'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+          description: ''
+    delete:
+      operationId: v1_units_destroy
+      parameters:
+      - in: path
+        name: unit_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /v1/units/{unit_id}/weapons:
+    get:
+      operationId: v1_units_weapons_list
+      parameters:
+      - in: path
+        name: unit_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Weapon'
+          description: ''
+    post:
+      operationId: v1_units_weapons_create
+      parameters:
+      - in: path
+        name: unit_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Weapon'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Weapon'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Weapon'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Weapon'
+          description: ''
+  /v1/units/{unit_id}/weapons/{weapon_id}:
+    get:
+      operationId: v1_units_weapons_retrieve
+      parameters:
+      - in: path
+        name: unit_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: weapon_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Weapon'
+          description: ''
+    patch:
+      operationId: v1_units_weapons_partial_update
+      parameters:
+      - in: path
+        name: unit_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: weapon_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedWeapon'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedWeapon'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedWeapon'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Weapon'
+          description: ''
+    delete:
+      operationId: v1_units_weapons_destroy
+      parameters:
+      - in: path
+        name: unit_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: weapon_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+components:
+  schemas:
+    InlineDamage:
+      type: object
+      properties:
+        weapon: {}
+        defender: {}
+      required:
+      - defender
+      - weapon
+    PatchedUnit:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        faction:
+          type: string
+          maxLength: 100
+        movement:
+          type: integer
+          maximum: 100
+          minimum: 0
+        toughness:
+          type: integer
+          maximum: 100
+          minimum: 1
+        save:
+          type: integer
+          maximum: 7
+          minimum: 2
+        invulnerable_save:
+          type: integer
+          maximum: 6
+          minimum: 2
+          nullable: true
+        wounds:
+          type: integer
+          maximum: 100
+          minimum: 1
+        leadership:
+          type: integer
+          maximum: 12
+          minimum: 2
+        objective_control:
+          type: integer
+          maximum: 100
+          minimum: 0
+        minimum_model_count:
+          type: integer
+          maximum: 20
+          minimum: 1
+        maximum_model_count:
+          type: integer
+          maximum: 20
+          minimum: 1
+        points:
+          type: integer
+          minimum: 0
+          nullable: true
+        edition:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        source:
+          type: string
+          nullable: true
+          maxLength: 200
+        source_version:
+          type: string
+          nullable: true
+          maxLength: 50
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedWeapon:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        unit_id:
+          type: integer
+          readOnly: true
+        range_inches:
+          type: integer
+          maximum: 1000
+          minimum: 1
+          nullable: true
+        attacks:
+          type: integer
+          maximum: 1000
+          minimum: 1
+        skill:
+          type: integer
+          maximum: 6
+          minimum: 2
+        strength:
+          type: integer
+          maximum: 100
+          minimum: 1
+        armour_penetration:
+          type: integer
+          maximum: 0
+          minimum: -10
+        damage:
+          type: integer
+          maximum: 100
+          minimum: 1
+        name:
+          type: string
+          maxLength: 100
+        profile_name:
+          type: string
+          maxLength: 100
+        weapon_type:
+          $ref: '#/components/schemas/WeaponTypeEnum'
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    StoredDamage:
+      type: object
+      properties:
+        weapon_profile_id:
+          type: integer
+          minimum: 1
+        defender_unit_id:
+          type: integer
+          minimum: 1
+        weapon_count:
+          type: integer
+          maximum: 1000
+          minimum: 1
+          default: 1
+        defender_model_count:
+          type: integer
+          minimum: 1
+      required:
+      - defender_model_count
+      - defender_unit_id
+      - weapon_profile_id
+    Unit:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        faction:
+          type: string
+          maxLength: 100
+        movement:
+          type: integer
+          maximum: 100
+          minimum: 0
+        toughness:
+          type: integer
+          maximum: 100
+          minimum: 1
+        save:
+          type: integer
+          maximum: 7
+          minimum: 2
+        invulnerable_save:
+          type: integer
+          maximum: 6
+          minimum: 2
+          nullable: true
+        wounds:
+          type: integer
+          maximum: 100
+          minimum: 1
+        leadership:
+          type: integer
+          maximum: 12
+          minimum: 2
+        objective_control:
+          type: integer
+          maximum: 100
+          minimum: 0
+        minimum_model_count:
+          type: integer
+          maximum: 20
+          minimum: 1
+        maximum_model_count:
+          type: integer
+          maximum: 20
+          minimum: 1
+        points:
+          type: integer
+          minimum: 0
+          nullable: true
+        edition:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        source:
+          type: string
+          nullable: true
+          maxLength: 200
+        source_version:
+          type: string
+          nullable: true
+          maxLength: 50
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - faction
+      - id
+      - leadership
+      - maximum_model_count
+      - minimum_model_count
+      - movement
+      - name
+      - objective_control
+      - save
+      - toughness
+      - updated_at
+      - wounds
+    Weapon:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        unit_id:
+          type: integer
+          readOnly: true
+        range_inches:
+          type: integer
+          maximum: 1000
+          minimum: 1
+          nullable: true
+        attacks:
+          type: integer
+          maximum: 1000
+          minimum: 1
+        skill:
+          type: integer
+          maximum: 6
+          minimum: 2
+        strength:
+          type: integer
+          maximum: 100
+          minimum: 1
+        armour_penetration:
+          type: integer
+          maximum: 0
+          minimum: -10
+        damage:
+          type: integer
+          maximum: 100
+          minimum: 1
+        name:
+          type: string
+          maxLength: 100
+        profile_name:
+          type: string
+          maxLength: 100
+        weapon_type:
+          $ref: '#/components/schemas/WeaponTypeEnum'
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - attacks
+      - created_at
+      - damage
+      - id
+      - name
+      - skill
+      - strength
+      - unit_id
+      - updated_at
+      - weapon_type
+    WeaponTypeEnum:
+      enum:
+      - ranged
+      - melee
+      type: string
+      description: |-
+        * `ranged` - Ranged
+        * `melee` - Melee
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid

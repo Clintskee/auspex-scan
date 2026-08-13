@@ -1,0 +1,1 @@
+"""Auspex Scan Django project."""
